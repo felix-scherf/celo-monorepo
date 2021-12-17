@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+spec:
+  template:
+    spec:
+      containers:
+      - name: post-install-grafana
+        image: alpine:3.3
+        imagePullPolicy: IfNotPresent
+        command: [ "/bin/sh", "-c", "/opt/scripts/grafana-hook.sh"]
+        volumeMounts:
+          - name: config-volume
+            mountPath: /opt/scripts
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-postinstall-configmap
+            defaultMode: 0777
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 0
